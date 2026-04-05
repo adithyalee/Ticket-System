@@ -39,7 +39,8 @@ Tickets sit in **`ticketsById`** plus **`ticketOrder`** so I’m not copying hug
 Meeedly’s [structure reference (playlist, video index 10)](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) — I checked my folders/UI against that before calling it done.  
 Noplin: [noplin.meeedly.com](https://noplin.meeedly.com/)
 
-My actual walkthrough video is separate; the title line they want is in [YOUTUBE_SCRIPT.md](YOUTUBE_SCRIPT.md).
+My actual walkthrough video is separate (exact title is in the submission docs / assignment).  
+**Which folders to show when you walk the code:** [YOUTUBE_CODE_TOUR.md](YOUTUBE_CODE_TOUR.md).
 
 ## Reality check
 

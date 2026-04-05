@@ -70,7 +70,19 @@ Open the URL shown (usually `http://localhost:5173/`). Walk through **ASSESSMENT
   `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
 
 - **Visibility:** The brief often says reviewers should be able to find your work. **Public** is safest. **Unlisted** is fine if you send them the link in your application email/portal (anyone with the link can watch; it won’t show on your channel for browse). **Private** usually **does not work** for reviewers—they can’t open it unless you add each person’s Google account, so avoid private for submissions.
-- Paste **repo + Medium** links in the description.
+
+**Simple description (paste under the video, then add your links):**
+
+```
+Walkthrough of my Meeedly Software Engineering Internship project: a support ticket system built with React and Noplin UI (no Redux or extra UI libraries).
+
+Adithya — Carleton University
+
+GitHub: https://github.com/adithyalee/Ticket-System
+Medium: [paste your article URL here]
+```
+
+Swap in your real Medium link after you publish. If you don’t have Medium yet, delete that line or write “Medium: coming soon” until it’s live.
 
 ## 7. Medium article
 

@@ -1,242 +1,75 @@
-# Meeedly Enterprise Support Ticket System
+# Support ticket system (Meeedly internship)
 
-**Author:** Adithya · **Carleton University**  
-**Assignment:** Software Engineering Internship — Build a Scalable Support Ticket System (Meeedly)
+**Adithya · Carleton University**
 
-A React-based support ticket platform built for the Meeedly internship assignment using `noplin-uis` for the interface and native React patterns for state, workflow logic, and persistence.
+I built this for Meeedly’s software engineering internship: a support ticket app in React that actually feels like something a real team would triage tickets on—not just create/read/update on a flat list.
 
-## Official Meeedly references (not your submission video)
+The UI is **Noplin** (`noplin-uis`). State is plain **React Context + `useReducer`**—no Redux, no React Router, no second UI kit. Data sticks around in **`localStorage`** so you can refresh and still see your tickets.
 
-- **Required folder structure, naming, and interface patterns:** [Course video (playlist)](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) — compare this repo to what the video specifies before you submit.
-- **Noplin UI components:** [Noplin documentation](https://noplin.meeedly.com/)
+## Before you submit
 
-Your **own** walkthrough for the internship must be a **separate** YouTube upload; use the title format in [YOUTUBE_SCRIPT.md](YOUTUBE_SCRIPT.md).
+The [playlist video (index 10)](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) is the **spec** for folder layout and interface patterns—compare your repo to that, not to someone else’s walkthrough.
 
-## Assignment Fit
+Noplin docs: [noplin.meeedly.com](https://noplin.meeedly.com/)
 
-This project is designed to satisfy the core assignment goals:
+Your **own** demo video is separate. Title format is in [YOUTUBE_SCRIPT.md](YOUTUBE_SCRIPT.md).
 
-- Ticket creation with title and detailed description
-- Ticket detail view with support replies and conversation history
-- Ticket management dashboard for high-volume triage
-- Team-aware assignment and queue management
-- Clean React architecture without external state libraries
-- Noplin UI components for the visible interface
+## What it does
 
-## What The App Includes
+- **Create ticket** — title + description, category/priority, then land on the ticket page.
+- **Dashboard** — search, filters (status, priority, team, queues like “Mine” / “Unassigned”), sort, pagination, KPI-style stat cards you can click to filter.
+- **Ticket detail** — public thread, internal notes (support/admin), assign team/agent, status/priority, SLA + “waiting on” workflow, activity log.
+- **Roles** — switch between customer (**User**), **Support Agent**, and **Admin** (bulk actions on the dashboard are admin-side; agents get line-level stuff like advancing status).
 
-- Customer ticket submission flow
-- Enterprise dashboard with queue filters, search, sorting, pagination, and KPI cards
-- Team routing and agent assignment
-- Ticket detail page with:
-  - public conversation thread
-  - internal support notes
-  - activity history
-  - status, priority, SLA, and waiting-state management
-- Role switching between `User`, `Support Agent`, and `Admin`
-- Persistent seeded ticket data using `localStorage`
+Seeded data loads on first run so the dashboard isn’t empty.
 
-## Tech Constraints Followed
+## Rules I stuck to
 
-- React only
-- No external state management library
-- No external router
-- No UI framework besides `noplin-uis`
-- No chart, table, or helper libraries added for the app logic
+React only for the app. **`noplin-uis`** for buttons, fields, cards, toasts. No extra libraries for state, routing, charts, or tables.
 
-## How To Run
-
-### Install
+## Run it
 
 ```bash
 npm install
-```
-
-### Start Development Server
-
-```bash
 npm run dev
 ```
 
-### Build Production Bundle
-
 ```bash
 npm run build
-```
-
-### Run Lint
-
-```bash
 npm run lint
 ```
 
-## How To Review The Project
+## Quick tour (if you’re grading this)
 
-Use this sequence when evaluating the app:
+1. Open the dashboard, click around filters and the stat cards.
+2. Flip roles at the top.
+3. As **User**, create a ticket and open it.
+4. As **Support Agent** or **Admin**, reply, add an internal note, move team/agent, tweak status/SLA.
+5. Refresh—data should still be there (`localStorage`).
 
-1. Open the dashboard and review the KPI cards and queue filters.
-2. Switch roles using the role switcher at the top.
-3. As `User`, create a new support ticket.
-4. Open the created ticket and confirm the conversation thread is visible.
-5. Switch to `Support Agent` or `Admin`.
-6. From the dashboard, assign tickets, change priority, and triage by team/queue.
-7. Open a ticket detail page and add:
-   - a public reply
-   - an internal note
-8. Change team, assignee, status, waiting state, and SLA state.
-9. Refresh the browser and confirm ticket data persists.
+## How the code is laid out
 
-## Architecture Overview
+| Area | What lives there |
+|------|------------------|
+| `src/pages/` | `Dashboard`, `CreateTicket`, `TicketDetail` |
+| `src/components/` | `TicketCard`, `TicketForm`, `MessageThread`, navbar, role switcher, status badge |
+| `src/context/TicketContext.jsx` | reducer + provider |
+| `src/hooks/useTickets.js` | what the pages call to create/update tickets |
+| `src/services/` | `mockData` (seed), `storageService` (localStorage), `ticketShape` (migrate old saves), `ticketSelectors` / `ticketUtils` (filters, stats, helpers) |
 
-### Screen Layer
+Tickets are stored normalized: **`ticketsById`** + **`ticketOrder`**, with team, org, assignee, SLA, messages, internal notes, activity, etc. That made updates less messy than one giant array everywhere.
 
-- `src/pages/CreateTicket.jsx`
-  - customer-facing ticket submission flow
-- `src/pages/Dashboard.jsx`
-  - high-volume triage dashboard for support and admins
-- `src/pages/TicketDetail.jsx`
-  - single-ticket workspace for communication and management
+## Honest limits
 
-### Reusable Component Layer
+No real backend, no auth, no websockets. It’s a frontend prototype meant to show structure and product thinking, not production security.
 
-- `src/components/TicketForm.jsx`
-  - shared form for ticket creation and message submission
-- `src/components/TicketCard.jsx`
-  - reusable triage card used on the dashboard
-- `src/components/MessageThread.jsx`
-  - reusable thread renderer for public replies and internal notes
-- `src/components/Navbar.jsx`, `src/components/RoleSwitcher.jsx`, `src/components/StatusBadge.jsx`
-  - shell and supporting UI components
+## Links for submission
 
-### State Layer
-
-- `src/context/TicketContext.jsx`
-  - centralized reducer and state provider
-- `src/hooks/useTickets.js`
-  - domain API used by pages/components
-
-### Service Layer
-
-- `src/services/storageService.js`
-  - persistence boundary wrapping `localStorage`
-- `src/services/mockData.js`
-  - seeded enterprise-style demo data with teams, agents, organizations, SLA states, and ticket activity
-- `src/services/ticketUtils.js`
-  - selector-style helpers for metrics, styling, and workflow rendering
-- `src/services/ticketShape.js`
-  - migrates legacy persisted tickets to the current enterprise field shape
-- `src/services/ticketSelectors.js`
-  - pure functions for dashboard queue matching, filtering, and sorting
-
-## Data Model
-
-Tickets are stored in normalized form using:
-
-- `ticketsById`
-- `ticketOrder`
-
-Each ticket carries operational metadata beyond basic CRUD fields:
-
-- `teamId`, `teamName`
-- `organizationId`, `organizationName`
-- `assignedToAgentId`, `assignedToAgentName`
-- `priority`, `status`, `slaStatus`
-- `waitingOn`
-- `isEscalated`
-- `messages`
-- `internalNotes`
-- `activity`
-
-This structure keeps updates predictable and makes future backend migration easier.
-
-## Scalability Decisions
-
-This is still a frontend prototype, but it intentionally includes scale-oriented patterns:
-
-- Normalized ticket state for predictable lookups and updates
-- Reducer-driven workflow actions to avoid scattered mutation logic
-- Team-aware ticket routing instead of a flat single-agent queue
-- Memoized filtering, sorting, and stats derivation in the dashboard
-- Pagination for large ticket lists
-- Debounced persistence writes to reduce storage churn
-- Seeded dataset so the dashboard always demonstrates non-trivial volume
-- Separation between screen components, workflow hooks, and persistence services
-
-## Product Decisions
-
-The product is designed for two primary personas:
-
-### Customer
-
-- create a ticket quickly
-- review the ticket history clearly
-- receive public support responses
-
-### Support/Admin
-
-- triage by queue, team, priority, and SLA pressure
-- assign ownership quickly
-- separate public communication from internal notes
-- review recent operational activity on each ticket
-
-## Current Limitations
-
-This project is intentionally a frontend-first prototype and does not yet include:
-
-- backend API
-- authentication and authorization
-- real multi-user collaboration
-- real-time updates via WebSockets
-- server-side pagination or search indexing
-
-## Future Improvements
-
-- Replace `localStorage` with a backend ticket service
-- Add role-based authentication and organization scoping
-- Move filtering/search/pagination to the server for very large datasets
-- Add SLA automation and notification workflows
-- Add audit exports and analytics reporting for support managers
-
-## Project Structure
-
-```txt
-src/
-  components/
-    MessageThread.jsx
-    Navbar.jsx
-    RoleSwitcher.jsx
-    StatusBadge.jsx
-    TicketCard.jsx
-    TicketForm.jsx
-  context/
-    TicketContext.jsx
-  hooks/
-    useTickets.js
-  pages/
-    CreateTicket.jsx
-    Dashboard.jsx
-    TicketDetail.jsx
-  services/
-    mockData.js
-    storageService.js
-    ticketSelectors.js
-    ticketShape.js
-    ticketUtils.js
-  App.jsx
-  App.css
-  index.css
-  main.jsx
-```
-
-## Submission Links
-
-**YouTube title (required format):**  
+**YouTube title (exact):**  
 `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
 
-Replace these after you publish (step-by-step: see **[SUBMISSION.md](SUBMISSION.md)**):
+- **GitHub:** [github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)
+- **YouTube:** add after you upload  
+- **Medium:** add after you publish  
 
-- GitHub Repo: [https://github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)
-- YouTube Walkthrough: `[add-youtube-link]`
-- Medium Article: `[add-medium-link]`
-
-Fill **`SUBMISSION_PROFILE.template.md`** → copy to `SUBMISSION_PROFILE.md` for your own values (`SUBMISSION_PROFILE.md` is gitignored).
+Full step list: [SUBMISSION.md](SUBMISSION.md). Copy [SUBMISSION_PROFILE.template.md](SUBMISSION_PROFILE.template.md) to `SUBMISSION_PROFILE.md` locally (that file is gitignored).

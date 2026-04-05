@@ -1,113 +1,48 @@
-# YouTube Walkthrough Script
+# YouTube walkthrough — rough script
 
-## Required Title (copy exactly for YouTube)
+## Title (paste exactly)
 
 `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
 
-## Video Description Template
+## Description (starter)
 
-This video walks through my Meeedly Software Engineering Internship assignment: **Build a Scalable Support Ticket System**.
+Walkthrough of my Meeedly internship project — scalable support ticket system in React + Noplin UI.
 
-**Author:** Adithya · **Carleton University**
+Adithya, Carleton University.
 
-Links:
-- GitHub Repository: https://github.com/adithyalee/Ticket-System
-- Medium Article: `[add-medium-article-link]`
+- Repo: https://github.com/adithyalee/Ticket-System  
+- Medium: (paste your link)
 
-## Recommended Flow
+---
 
-### 1. Introduction
+## What to say (not word-for-word if you don’t want)
 
-"Hello, my name is Adithya from Carleton University. This is my submission for the Meeedly Software Engineering Internship assignment: Build a Scalable Support Ticket System. I built it in React using Noplin UI components, with no external state-management or UI libraries."
+**Intro**  
+Hey, I’m Adithya from Carleton. This is my submission for the Meeedly internship build: a support ticket system. It’s React, Noplin components for the actual UI, and I didn’t add Redux or another UI library—just Context and a reducer.
 
-### 2. What Problem The Product Solves
+**Why it’s not “just CRUD”**  
+The brief was basically: think like a real SaaS support team. So there’s teams, routing, SLAs, queues, internal notes vs public replies, and a dashboard that doesn’t fall over when there are a lot of tickets.
 
-"The assignment asked for more than a CRUD app, so I designed this as an internal support platform for a SaaS company handling high ticket volume, multiple support teams, and communication between customers, support agents, and admins."
+**Dashboard**  
+Show the list, search, filters, sorting, pagination. Mention the stat cards—some of them double as quick filters. Show role switcher: User vs agent vs admin (bulk select is admin).
 
-### 3. Dashboard Walkthrough
+**Create flow**  
+Switch to User, create a ticket, land on detail page.
 
-Show the dashboard first.
+**Ticket page**  
+Thread for the customer, internal notes tab for support, assignment, status/priority, workflow stuff, activity log at the bottom.
 
-Talk through:
-- KPI cards for backlog, urgent tickets, unassigned tickets, awaiting-customer tickets, and SLA breaches
-- queue filters such as `Mine`, `My Team`, `Unassigned`, `Escalated`, and `Awaiting Customer`
-- search, sorting, pagination, and bulk actions
-- team-aware routing and assignment
+**Code (quick)**  
+Flip to the editor: `pages`, `components`, `TicketContext` + reducer, `useTickets`, `services` for storage and mock data. I pulled filter/sort logic into `ticketSelectors` so the dashboard component wasn’t doing everything inline.
 
-Suggested script:
+**Wrap**  
+Thanks for watching—links in the description.
 
-"This dashboard is designed for support triage. Instead of just listing tickets, it helps teams manage workload at scale. Support staff can filter by queue, team, status, category, priority, and SLA pressure. I also added bulk actions to make manager workflows more efficient."
+---
 
-### 4. Ticket Creation Flow
+## Before you hit record
 
-Switch to `User` role and create a ticket.
-
-Suggested script:
-
-"From the customer perspective, the flow is simple: create a ticket with a title and detailed description, then immediately view the ticket detail page and follow the conversation history."
-
-### 5. Ticket Detail Flow
-
-Open a ticket detail page.
-
-Talk through:
-- public conversation thread
-- internal notes for support-only collaboration
-- team and agent assignment
-- status, priority, waiting state, and SLA management
-- activity log for auditability
-
-Suggested script:
-
-"The ticket detail page acts as the operational workspace. Public replies keep customer communication clear, while internal notes let support teams collaborate without exposing internal context to customers. The activity feed records assignment and workflow changes so the ticket history is easy to review."
-
-### 6. Architecture Explanation
-
-Open the code editor and show:
-- `src/pages`
-- `src/components`
-- `src/context/TicketContext.jsx`
-- `src/hooks/useTickets.js`
-- `src/services/mockData.js`
-- `src/services/storageService.js`
-- `src/services/ticketUtils.js`, `ticketSelectors.js`, `ticketShape.js`
-
-Suggested script:
-
-"I separated the app into pages, reusable components, centralized reducer state, a domain hook, and service utilities. The reducer keeps updates predictable, `useTickets` exposes a clean domain API to the UI, and the storage service acts as the persistence boundary. That makes the project easier to maintain and easier to migrate to a backend later."
-
-### 7. Scalability Decisions
-
-Suggested talking points:
-- normalized ticket storage with `ticketsById` and `ticketOrder`
-- memoized dashboard filtering and sorting
-- pagination for large ticket volumes
-- seeded demo data to simulate realistic load
-- team-based ownership instead of a flat queue
-- debounced `localStorage` persistence
-
-Suggested script:
-
-"Since this is a frontend-first prototype, I focused on scalable frontend patterns. Tickets are normalized for predictable updates, dashboard computations are memoized, pagination keeps the list manageable, and the state layer is separated from the UI so a real backend could replace local storage later without rewriting the entire product."
-
-### 8. Challenges Faced
-
-Suggested script:
-
-"One challenge was creating a richer enterprise workflow without external libraries. I solved that by leaning on React Context plus `useReducer`, and by modeling tickets with team ownership, SLA state, activity history, and internal notes instead of only basic CRUD fields."
-
-### 9. Outro
-
-Suggested script:
-
-"That concludes my walkthrough. Thank you for reviewing my submission. The GitHub repository and Medium article are linked in the description."
-
-## Final Recording Checklist
-
-- Paste your real GitHub and Medium URLs in the description (name and university are already set in this file)
-- Show the app running locally
-- Demonstrate all 3 required pages
-- Demonstrate role switching
-- Demonstrate assignment and ticket response
-- Mention Noplin UI and no-external-library constraint clearly
-- Keep the video concise and confident
+- App running (`npm run dev`)
+- Real Medium + YouTube links in the description when you have them
+- Show all three pages + role switch + at least one reply and one internal note
+- Say clearly: Noplin for UI, no extra state/UI libs

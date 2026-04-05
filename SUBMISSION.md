@@ -1,6 +1,6 @@
-# Submission guide (Meeedly internship)
+# Submission checklist
 
-Do these steps in order. Only **you** can publish GitHub, YouTube, and Medium.
+I use this so I don’t forget something dumb the night before the deadline. Only you can actually publish GitHub / YouTube / Medium.
 
 ## 1. Fill your details
 
@@ -84,14 +84,6 @@ Open the URL shown (usually `http://localhost:5173/`). Walk through **ASSESSMENT
 - [ ] README links are real URLs, not placeholders
 - [ ] Checklist in `ASSESSMENT_CHECKLIST.md` is fully ticked
 
-## Need help from Cursor with text only?
+## After URLs exist
 
-Reply with:
-
-- **Project title** (for the video title)
-- **Your full name**
-- **University**
-- **Public GitHub repo URL** (once created)
-- **YouTube URL** and **Medium URL** (once published)
-
-Then ask to “inject these into README and the script.” A follow-up edit can replace placeholders in those files for you.
+Search the repo for `add-youtube-link` / `add-medium-link` (or similar placeholders) and drop in the real links in **README**, **YOUTUBE_SCRIPT.md** description, and **MEDIUM_ARTICLE.md**.

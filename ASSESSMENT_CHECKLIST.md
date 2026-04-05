@@ -1,6 +1,6 @@
-# Assessment Checklist
+# Assessment checklist
 
-Use this checklist before submitting the project.
+Quick pass before I hit submit—tick boxes as I actually verify them.
 
 ## Core Feature Checklist
 

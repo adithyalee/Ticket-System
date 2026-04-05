@@ -11,7 +11,7 @@ This video walks through my Meeedly Software Engineering Internship assignment: 
 **Author:** Adithya · **Carleton University**
 
 Links:
-- GitHub Repository: `[add-public-repo-link]`
+- GitHub Repository: https://github.com/adithyalee/Ticket-System
 - Medium Article: `[add-medium-article-link]`
 
 ## Recommended Flow

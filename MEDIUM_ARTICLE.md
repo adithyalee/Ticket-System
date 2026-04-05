@@ -140,6 +140,6 @@ This project helped me balance product usability with software engineering const
 
 Links (replace after you publish):
 
-- GitHub Repository: `[add-public-repo-link]`
+- GitHub Repository: [https://github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)
 - YouTube Walkthrough: `[add-youtube-link]`  
   **Title:** `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`

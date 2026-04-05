@@ -228,7 +228,7 @@ src/
 
 Replace these after you publish (step-by-step: see **[SUBMISSION.md](SUBMISSION.md)**):
 
-- GitHub Repo: `[add-public-repo-link]`
+- GitHub Repo: [https://github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)
 - YouTube Walkthrough: `[add-youtube-link]`
 - Medium Article: `[add-medium-link]`
 

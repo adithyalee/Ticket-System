@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local submission secrets (optional copy of SUBMISSION_PROFILE.template.md)
+SUBMISSION_PROFILE.md

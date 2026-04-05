@@ -49,7 +49,14 @@ export function RoleSwitcher() {
 
       <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
         {ROLES.map((role) => (
-          <Button key={role} onClick={() => switchRole(role)} style={roleButtonStyle({ selected: activeRole === role })}>
+          <Button
+            key={role}
+            onClick={(e) => {
+              e.preventDefault();
+              switchRole(role);
+            }}
+            style={roleButtonStyle({ selected: activeRole === role })}
+          >
             {role}
           </Button>
         ))}

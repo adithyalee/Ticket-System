@@ -1,32 +1,74 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Button, TextField } from 'noplin-uis';
-import { useTickets } from '../hooks/useTickets';
-import { AGENTS, CATEGORIES, PRIORITIES, STATUSES } from '../services/mockData';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Button, GeneralSuccessNotification, NoplinCard, TextField } from 'noplin-uis';
 import { TicketCard } from '../components/TicketCard';
+import { useTickets } from '../hooks/useTickets';
+import { CATEGORIES, PRIORITIES, STATUSES } from '../services/mockData';
+import { filterTicketsForDashboard, sortTicketsForDashboard } from '../services/ticketSelectors';
+import { buildTicketStats, getPriorityCycle } from '../services/ticketUtils';
 
-const PRIORITY_WEIGHT = { Low: 1, Medium: 2, High: 3 };
-
-function filterPillStyle({ selected }) {
+function filterPillStyle(selected) {
   return {
     padding: '10px 14px',
     borderRadius: '9999px',
-    border: selected ? '1px solid #111' : '1px solid #eaeaea',
+    border: selected ? '1px solid #111' : '1px solid #e5e7eb',
     background: selected ? '#111' : '#fff',
     color: selected ? '#fff' : '#111',
-    fontSize: '0.88rem',
-    fontWeight: 900,
-    opacity: selected ? 1 : 0.95,
+    fontWeight: 800,
   };
 }
 
-export default function Dashboard({ onNavigate }) {
+function MetricCard({
+  label,
+  value,
+  helper,
+  onActivate,
+  isActive,
+  ariaLabel,
+}) {
+  const interactive = typeof onActivate === 'function';
+  return (
+    <NoplinCard
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? (ariaLabel || `${label}: ${value}. ${helper || ''}`) : undefined}
+      aria-pressed={interactive ? Boolean(isActive) : undefined}
+      onClick={interactive ? (e) => { e.preventDefault(); onActivate(); } : undefined}
+      onKeyDown={interactive ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onActivate();
+        }
+      } : undefined}
+      style={{
+        padding: '1.25rem',
+        border: `1px solid ${isActive ? '#111' : '#e5e7eb'}`,
+        cursor: interactive ? 'pointer' : 'default',
+        outline: 'none',
+        boxShadow: isActive ? '0 0 0 2px rgba(17, 17, 17, 0.12)' : undefined,
+        transition: 'border-color 120ms ease, box-shadow 120ms ease',
+      }}
+    >
+      <div style={{ color: '#6b7280', fontWeight: 800, fontSize: '0.82rem' }}>{label}</div>
+      <div style={{ color: '#111', fontSize: '1.75rem', fontWeight: 900, marginTop: '0.35rem' }}>{value}</div>
+      <div style={{ color: '#6b7280', marginTop: '0.35rem', fontSize: '0.88rem' }}>{helper}</div>
+    </NoplinCard>
+  );
+}
+
+export default function Dashboard({ onNavigate, initialState, onStateChange }) {
   const {
     tickets,
     ticketsById,
     loading,
     canManage,
+    isAdmin,
+    currentUser,
+    currentTeamId,
     agents,
+    teams,
     assignTicket,
+    bulkAssignAgent,
+    bulkUpdateTickets,
     updateTicket,
   } = useTickets();
 
@@ -34,80 +76,123 @@ export default function Dashboard({ onNavigate }) {
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const [sortBy, setSortBy] = useState('Newest'); // 'Newest' | 'Priority'
+  const [teamFilter, setTeamFilter] = useState('All');
+  const [queueView, setQueueView] = useState('All');
+  const [slaStatusFilter, setSlaStatusFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('Newest');
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [successMessage, setSuccessMessage] = useState('');
+  const listTopRef = useRef(null);
+
+  useEffect(() => {
+    if (!initialState) return;
+    setSearchTerm(initialState.searchTerm ?? '');
+    setStatusFilter(initialState.statusFilter ?? 'All');
+    setPriorityFilter(initialState.priorityFilter ?? 'All');
+    setCategoryFilter(initialState.categoryFilter ?? 'All');
+    setTeamFilter(initialState.teamFilter ?? 'All');
+    setQueueView(initialState.queueView ?? 'All');
+    setSlaStatusFilter(initialState.slaStatusFilter ?? 'All');
+    setSortBy(initialState.sortBy ?? 'Newest');
+    setPageSize(initialState.pageSize ?? 10);
+    setPage(initialState.page ?? 1);
+  }, [initialState]);
+
+  useEffect(() => {
+    onStateChange?.({
+      searchTerm,
+      statusFilter,
+      priorityFilter,
+      categoryFilter,
+      teamFilter,
+      queueView,
+      slaStatusFilter,
+      sortBy,
+      pageSize,
+      page,
+    });
+  }, [onStateChange, searchTerm, statusFilter, priorityFilter, categoryFilter, teamFilter, queueView, slaStatusFilter, sortBy, pageSize, page]);
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, statusFilter, priorityFilter, categoryFilter, sortBy, pageSize]);
+  }, [searchTerm, statusFilter, priorityFilter, categoryFilter, teamFilter, queueView, slaStatusFilter, sortBy, pageSize]);
 
-  const filtered = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
+  useEffect(() => {
+    if (!listTopRef.current) return;
+    listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [page, pageSize]);
 
-    return tickets.filter((t) => {
-      if (!t) return false;
+  const stats = useMemo(() => buildTicketStats(tickets), [tickets]);
 
-      const matchesSearch =
-        !q ||
-        (t.title || '').toLowerCase().includes(q) ||
-        (t.id || '').toLowerCase().includes(q) ||
-        (t.category || '').toLowerCase().includes(q);
+  const filtered = useMemo(
+    () =>
+      filterTicketsForDashboard(tickets, {
+        searchTerm,
+        statusFilter,
+        priorityFilter,
+        categoryFilter,
+        teamFilter,
+        queueView,
+        slaStatusFilter,
+        currentUser,
+        currentTeamId,
+      }),
+    [tickets, searchTerm, statusFilter, priorityFilter, categoryFilter, teamFilter, queueView, slaStatusFilter, currentUser, currentTeamId],
+  );
 
-      const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
-      const matchesPriority = priorityFilter === 'All' || t.priority === priorityFilter;
-      const matchesCategory = categoryFilter === 'All' || t.category === categoryFilter;
+  const sorted = useMemo(() => sortTicketsForDashboard(filtered, sortBy), [filtered, sortBy]);
 
-      return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
-    });
-  }, [tickets, searchTerm, statusFilter, priorityFilter, categoryFilter]);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const currentPage = Math.min(Math.max(page, 1), totalPages);
+  const pageTickets = useMemo(() => sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize), [sorted, currentPage, pageSize]);
 
-  const sorted = useMemo(() => {
-    const arr = [...filtered];
-    if (sortBy === 'Newest') {
-      arr.sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
-      return arr;
-    }
-
-    // Priority sort: High first, then Medium, then Low; break ties by recency.
-    arr.sort((a, b) => {
-      const w = (PRIORITY_WEIGHT[b.priority] || 0) - (PRIORITY_WEIGHT[a.priority] || 0);
-      if (w !== 0) return w;
-      return (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt);
-    });
-    return arr;
-  }, [filtered, sortBy]);
-
-  const total = sorted.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(Math.max(1, page), totalPages);
-  const pageTickets = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return sorted.slice(start, start + pageSize);
-  }, [sorted, currentPage, pageSize]);
+  const selectedTickets = selectedIds.map((id) => ticketsById[id]).filter(Boolean);
+  const activeFilterText = [
+    queueView !== 'All' ? `Queue: ${queueView}` : null,
+    statusFilter !== 'All' ? `Status: ${statusFilter}` : null,
+    priorityFilter !== 'All' ? `Priority: ${priorityFilter}` : null,
+    categoryFilter !== 'All' ? `Category: ${categoryFilter}` : null,
+    teamFilter !== 'All' ? `Team: ${teams.find((team) => team.id === teamFilter)?.name || teamFilter}` : null,
+    slaStatusFilter !== 'All' ? `SLA: ${slaStatusFilter}` : null,
+    searchTerm.trim() ? `Search: "${searchTerm.trim()}"` : null,
+  ].filter(Boolean).join(' · ');
 
   const cycleAgent = (ticket) => {
-    const list = agents?.length ? agents : AGENTS;
-    if (!ticket) return list[0];
-    const current = ticket.assignedToAgentId;
-    const idx = list.findIndex((a) => a.id === current);
-    const next = list[(idx + 1 + list.length) % list.length];
-    return next;
-  };
-
-  const cyclePriority = (ticket) => {
-    const order = PRIORITIES;
-    const idx = order.findIndex((p) => p === ticket.priority);
-    return order[(idx + 1 + order.length) % order.length];
+    const pool = agents.filter((agent) => agent.teamId === ticket.teamId);
+    const list = pool.length ? pool : agents;
+    const idx = list.findIndex((agent) => agent.id === ticket.assignedToAgentId);
+    return list[(idx + 1 + list.length) % list.length];
   };
 
   const advanceStatus = (ticket) => {
-    const order = STATUSES;
-    const idx = order.findIndex((s) => s === ticket.status);
+    const idx = STATUSES.findIndex((status) => status === ticket.status);
     if (idx < 0) return 'Open';
-    if (order[idx] === 'Resolved') return 'Resolved';
-    return order[idx + 1] || 'Resolved';
+    return STATUSES[Math.min(idx + 1, STATUSES.length - 1)];
   };
+
+  const toggleSelected = (ticketId) => {
+    setSelectedIds((current) => current.includes(ticketId) ? current.filter((id) => id !== ticketId) : [...current, ticketId]);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('All');
+    setPriorityFilter('All');
+    setCategoryFilter('All');
+    setTeamFilter('All');
+    setQueueView('All');
+    setSlaStatusFilter('All');
+  };
+
+  const filtersAreDefault = !searchTerm.trim()
+    && statusFilter === 'All'
+    && priorityFilter === 'All'
+    && categoryFilter === 'All'
+    && teamFilter === 'All'
+    && queueView === 'All'
+    && slaStatusFilter === 'All';
 
   if (loading) {
     return <div style={{ padding: '2rem', color: '#666' }}>Loading tickets...</div>;
@@ -115,143 +200,254 @@ export default function Dashboard({ onNavigate }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
         <div>
-          <h1 style={{ fontSize: '2rem', margin: 0, color: '#111' }}>Ticket Dashboard</h1>
-          <div style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.95rem' }}>
-            {total} ticket{total === 1 ? '' : 's'} in view
-          </div>
+          <h1 style={{ margin: 0, color: '#111', fontSize: '2rem' }}>Enterprise Support Dashboard</h1>
+          <div style={{ marginTop: '0.45rem', color: '#6b7280' }}>{sorted.length} tickets in view · role: {currentUser.role}</div>
         </div>
-
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <TextField
-            placeholder="Search by title, ID, or category..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Button
-            onClick={() => onNavigate('new')}
-            style={{
-              padding: '12px 18px',
-              background: '#111',
-              color: '#fff',
-              borderRadius: '9999px',
-              fontWeight: 900,
-              border: '1px solid #111',
-            }}
-          >
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <TextField placeholder="Search tickets, orgs, IDs, teams" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <Button onClick={(e) => { e.preventDefault(); onNavigate('new'); }} style={{ padding: '12px 18px', background: '#111', color: '#fff', border: '1px solid #111' }}>
             + New Ticket
           </Button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-          <span style={{ color: '#666', fontWeight: 900, fontSize: '0.9rem' }}>Status:</span>
-          {['All', ...STATUSES].map((s) => (
-            <Button key={s} onClick={() => setStatusFilter(s)} style={filterPillStyle({ selected: statusFilter === s })}>
-              {s}
-            </Button>
-          ))}
+      {successMessage && (
+        <div style={{ marginBottom: '1rem' }}>
+          <GeneralSuccessNotification message={successMessage} onClose={() => setSuccessMessage('')} />
         </div>
+      )}
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-          <span style={{ color: '#666', fontWeight: 900, fontSize: '0.9rem' }}>Priority:</span>
-          {['All', ...PRIORITIES].map((p) => (
-            <Button key={p} onClick={() => setPriorityFilter(p)} style={filterPillStyle({ selected: priorityFilter === p })}>
-              {p}
-            </Button>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-          <span style={{ color: '#666', fontWeight: 900, fontSize: '0.9rem' }}>Category:</span>
-          {['All', ...CATEGORIES].map((c) => (
-            <Button key={c} onClick={() => setCategoryFilter(c)} style={filterPillStyle({ selected: categoryFilter === c })}>
-              {c}
-            </Button>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-            <span style={{ color: '#666', fontWeight: 900, fontSize: '0.9rem' }}>Sort:</span>
-            {['Newest', 'Priority'].map((s) => (
-              <Button key={s} onClick={() => setSortBy(s)} style={filterPillStyle({ selected: sortBy === s })}>
-                {s}
-              </Button>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-            <span style={{ color: '#666', fontWeight: 900, fontSize: '0.9rem' }}>Page size:</span>
-            {[10, 20, 50].map((n) => (
-              <Button key={n} onClick={() => setPageSize(n)} style={filterPillStyle({ selected: pageSize === n })}>
-                {n}
-              </Button>
-            ))}
-          </div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+        <MetricCard
+          label="Backlog"
+          value={stats.total}
+          helper="All active and historical tickets"
+          isActive={filtersAreDefault}
+          onActivate={() => { clearFilters(); }}
+          ariaLabel="Show full backlog, clear dashboard filters"
+        />
+        <MetricCard
+          label="Urgent"
+          value={stats.urgent}
+          helper="Needs fast routing"
+          isActive={priorityFilter === 'Urgent' && slaStatusFilter === 'All'}
+          onActivate={() => {
+            setQueueView('All');
+            setSlaStatusFilter('All');
+            setPriorityFilter('Urgent');
+          }}
+          ariaLabel="Filter to urgent priority tickets"
+        />
+        <MetricCard
+          label="Unassigned"
+          value={stats.unassigned}
+          helper="Triage queue pressure"
+          isActive={queueView === 'Unassigned' && slaStatusFilter === 'All'}
+          onActivate={() => {
+            setSlaStatusFilter('All');
+            setQueueView('Unassigned');
+          }}
+          ariaLabel="Filter to unassigned tickets"
+        />
+        <MetricCard
+          label="Awaiting Customer"
+          value={stats.awaitingCustomer}
+          helper="Support has responded"
+          isActive={queueView === 'Awaiting Customer' && slaStatusFilter === 'All'}
+          onActivate={() => {
+            setSlaStatusFilter('All');
+            setQueueView('Awaiting Customer');
+          }}
+          ariaLabel="Filter to tickets awaiting customer response"
+        />
+        <MetricCard
+          label="SLA Breached"
+          value={stats.breached}
+          helper="Operational risk tickets"
+          isActive={slaStatusFilter === 'Breached'}
+          onActivate={() => {
+            setSlaStatusFilter('Breached');
+          }}
+          ariaLabel="Filter to SLA breached tickets"
+        />
       </div>
 
-      {sorted.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: '#666', background: '#fff', borderRadius: '12px', border: '1px solid #eee' }}>
-          <h3 style={{ margin: '0 0 0.5rem' }}>No tickets found</h3>
-          <p style={{ margin: 0 }}>Try adjusting your search or filters.</p>
-        </div>
-      ) : (
-        <>
-          <div style={{ display: 'grid', gap: '1.25rem' }}>
-            {pageTickets.map((ticket) => (
-              <TicketCard
-                key={ticket.id}
-                ticket={ticket}
-                canManage={canManage}
-                onOpen={() => onNavigate('detail', ticket.id)}
-                onAssignNext={(ticketId) => {
-                  const t = ticketsById[ticketId];
-                  const nextAgent = cycleAgent(t);
-                  if (nextAgent) assignTicket(ticketId, nextAgent.id);
-                }}
-                onCyclePriority={(ticketId) => {
-                  const t = ticketsById[ticketId];
-                  if (!t) return;
-                  const nextPriority = cyclePriority(t);
-                  updateTicket(ticketId, { priority: nextPriority });
-                }}
-                onAdvanceStatus={(ticketId) => {
-                  const t = ticketsById[ticketId];
-                  if (!t) return;
-                  const nextStatus = advanceStatus(t);
-                  updateTicket(ticketId, { status: nextStatus });
-                }}
-              />
+      <NoplinCard style={{ padding: '1.25rem', border: '1px solid #e5e7eb', marginBottom: '1.25rem' }}>
+        <div ref={listTopRef} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {['All', 'Mine', 'My Team', 'Unassigned', 'Escalated', 'Awaiting Customer'].map((queue) => (
+              <Button key={queue} onClick={(e) => { e.preventDefault(); setQueueView(queue); }} style={filterPillStyle(queueView === queue)}>
+                {queue}
+              </Button>
             ))}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-            <div style={{ color: '#666', fontWeight: 800 }}>
-              Page {currentPage} of {totalPages}
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {['All', ...STATUSES].map((status) => (
+              <Button key={status} onClick={(e) => { e.preventDefault(); setStatusFilter(status); }} style={filterPillStyle(statusFilter === status)}>
+                {status}
+              </Button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {['All', ...PRIORITIES].map((priority) => (
+              <Button key={priority} onClick={(e) => { e.preventDefault(); setPriorityFilter(priority); }} style={filterPillStyle(priorityFilter === priority)}>
+                {priority}
+              </Button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {['All', ...CATEGORIES].map((category) => (
+              <Button key={category} onClick={(e) => { e.preventDefault(); setCategoryFilter(category); }} style={filterPillStyle(categoryFilter === category)}>
+                {category}
+              </Button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <Button onClick={(e) => { e.preventDefault(); setTeamFilter('All'); }} style={filterPillStyle(teamFilter === 'All')}>
+              All Teams
+            </Button>
+            {teams.map((team) => (
+              <Button key={team.id} onClick={(e) => { e.preventDefault(); setTeamFilter(team.id); }} style={filterPillStyle(teamFilter === team.id)}>
+                {team.name}
+              </Button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+              {['Newest', 'Priority', 'SLA'].map((sort) => (
+                <Button key={sort} onClick={(e) => { e.preventDefault(); setSortBy(sort); }} style={filterPillStyle(sortBy === sort)}>
+                  Sort: {sort}
+                </Button>
+              ))}
             </div>
             <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <Button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                style={{ padding: '10px 14px', borderRadius: '9999px', border: '1px solid #eaeaea', background: '#fff', fontWeight: 900 }}
-                disabled={currentPage <= 1}
-              >
-                Prev
-              </Button>
-              <Button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                style={{ padding: '10px 14px', borderRadius: '9999px', border: '1px solid #eaeaea', background: '#fff', fontWeight: 900 }}
-                disabled={currentPage >= totalPages}
-              >
-                Next
+              {[10, 20, 50].map((size) => (
+                <Button key={size} onClick={(e) => { e.preventDefault(); setPageSize(size); }} style={filterPillStyle(pageSize === size)}>
+                  {size}/page
+                </Button>
+              ))}
+              <Button onClick={(e) => { e.preventDefault(); clearFilters(); }} style={{ padding: '10px 14px' }}>
+                Clear Filters
               </Button>
             </div>
           </div>
-        </>
+
+          {activeFilterText && <div style={{ color: '#6b7280', fontWeight: 700 }}>Filtered: <span style={{ color: '#111' }}>{activeFilterText}</span></div>}
+        </div>
+      </NoplinCard>
+
+      {canManage && isAdmin && selectedTickets.length > 0 && (
+        <NoplinCard style={{ padding: '1.25rem', border: '1px solid #e5e7eb', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ color: '#111', fontWeight: 800 }}>{selectedTickets.length} ticket(s) selected for bulk actions</div>
+            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+              <Button onClick={(e) => { e.preventDefault(); bulkUpdateTickets(selectedIds, { status: 'In Progress' }); setSuccessMessage('Bulk status updated to In Progress'); setSelectedIds([]); }}>
+                Start Work
+              </Button>
+              <Button onClick={(e) => { e.preventDefault(); bulkUpdateTickets(selectedIds, { priority: 'High' }); setSuccessMessage('Bulk priority updated to High'); setSelectedIds([]); }}>
+                Mark High
+              </Button>
+              <Button onClick={(e) => { e.preventDefault(); bulkAssignAgent(selectedIds, agents[0]?.id); setSuccessMessage(`Assigned selected tickets to ${agents[0]?.name}`); setSelectedIds([]); }}>
+                Assign First Agent
+              </Button>
+              <Button onClick={(e) => { e.preventDefault(); setSelectedIds([]); }}>
+                Clear Selection
+              </Button>
+            </div>
+          </div>
+        </NoplinCard>
       )}
+
+      {pageTickets.length === 0 ? (
+        <NoplinCard style={{ padding: '3rem', textAlign: 'center', border: '1px solid #e5e7eb' }}>
+          <h3 style={{ marginTop: 0, color: '#111' }}>No tickets found</h3>
+          <p style={{ color: '#6b7280', marginBottom: 0 }}>Adjust filters or create a new ticket.</p>
+        </NoplinCard>
+      ) : (
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          {pageTickets.map((ticket) => (
+            <TicketCard
+              key={ticket.id}
+              ticket={ticket}
+              canManage={canManage}
+              cardActionsLevel={isAdmin ? 'admin' : 'agent'}
+              selected={selectedIds.includes(ticket.id)}
+              onToggleSelect={toggleSelected}
+              onOpen={() => onNavigate('detail', ticket.id)}
+              onAssignNext={(ticketId) => {
+                const nextAgent = cycleAgent(ticketsById[ticketId]);
+                if (!nextAgent) return;
+                assignTicket(ticketId, nextAgent.id);
+                setSuccessMessage(`Assigned to ${nextAgent.name}`);
+              }}
+              onCyclePriority={(ticketId) => {
+                const ticketRef = ticketsById[ticketId];
+                updateTicket(ticketId, { priority: getPriorityCycle(ticketRef.priority) });
+                setSuccessMessage('Priority updated');
+              }}
+              onAdvanceStatus={(ticketId) => {
+                const ticketRef = ticketsById[ticketId];
+                updateTicket(ticketId, { status: advanceStatus(ticketRef) });
+                setSuccessMessage('Status advanced');
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+        <div style={{ color: '#6b7280', fontWeight: 800 }}>Page {currentPage} of {totalPages}</div>
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          {(() => {
+            const isFirst = currentPage <= 1;
+            const isLast = currentPage >= totalPages;
+            const disabledWrap = (disabled) => ({
+              display: 'inline-block',
+              opacity: disabled ? 0.45 : 1,
+              pointerEvents: disabled ? 'none' : 'auto',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+            });
+            return (
+              <>
+                <div style={disabledWrap(isFirst)}>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!isFirst) setPage((value) => Math.max(1, value - 1));
+                    }}
+                    disabled={isFirst}
+                    aria-disabled={isFirst}
+                    style={{ fontWeight: 800 }}
+                  >
+                    Prev
+                  </Button>
+                </div>
+                <div style={disabledWrap(isLast)}>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!isLast) setPage((value) => Math.min(totalPages, value + 1));
+                    }}
+                    disabled={isLast}
+                    aria-disabled={isLast}
+                    style={{ fontWeight: 800 }}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
     </div>
   );
 }

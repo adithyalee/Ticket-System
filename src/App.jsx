@@ -44,6 +44,18 @@ class ErrorBoundary extends React.Component {
 function AppContent() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [activeTicketId, setActiveTicketId] = useState(null);
+  const [dashboardState, setDashboardState] = useState({
+    searchTerm: '',
+    statusFilter: 'All',
+    priorityFilter: 'All',
+    categoryFilter: 'All',
+    teamFilter: 'All',
+    queueView: 'All',
+    slaStatusFilter: 'All',
+    sortBy: 'Newest',
+    pageSize: 10,
+    page: 1,
+  });
 
   const navigateTo = (page, ticketId = null) => {
     setCurrentPage(page);
@@ -54,12 +66,29 @@ function AppContent() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fafafa' }}>
       <Navbar currentPage={currentPage} onNavigate={navigateTo} />
 
-      <div style={{ maxWidth: 1200, width: '100%', margin: '0 auto', padding: '1.25rem 2rem 0 2rem' }}>
+      <div
+        style={{
+          maxWidth: 1200,
+          width: '100%',
+          margin: '0 auto',
+          padding: '1.25rem 2rem 0 2rem',
+          position: 'sticky',
+          top: 72,
+          zIndex: 9,
+          background: '#fafafa',
+        }}
+      >
         <RoleSwitcher />
       </div>
 
       <main style={{ padding: '1.75rem 2rem 2.5rem 2rem', maxWidth: '1200px', width: '100%', margin: '0 auto', flex: 1 }}>
-        {currentPage === 'dashboard' && <Dashboard onNavigate={navigateTo} />}
+        {currentPage === 'dashboard' && (
+          <Dashboard
+            onNavigate={navigateTo}
+            initialState={dashboardState}
+            onStateChange={setDashboardState}
+          />
+        )}
         {currentPage === 'new' && <CreateTicket onNavigate={navigateTo} />}
         {currentPage === 'detail' && <TicketDetail ticketId={activeTicketId} onNavigate={navigateTo} />}
       </main>

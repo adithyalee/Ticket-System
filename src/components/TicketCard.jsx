@@ -1,135 +1,98 @@
-import React, { useMemo } from 'react';
-import { NoplinCard, Button } from 'noplin-uis';
+import React from 'react';
+import { Button, NoplinCard } from 'noplin-uis';
 import { StatusBadge } from './StatusBadge';
-import { AGENTS } from '../services/mockData';
+import { getAgentName, getPriorityTone, getSlaTone } from '../services/ticketUtils';
 
-function PriorityBadge({ priority }) {
-  const style = useMemo(() => {
-    if (priority === 'High') return { bg: '#fee2e2', text: '#b91c1c' };
-    if (priority === 'Medium') return { bg: '#fef3c7', text: '#92400e' };
-    return { bg: '#f3f4f6', text: '#374151' };
-  }, [priority]);
-
+function Pill({ label, tone }) {
   return (
     <span
       style={{
-        backgroundColor: style.bg,
-        color: style.text,
+        backgroundColor: tone.bg,
+        color: tone.text,
+        border: `1px solid ${tone.border}`,
         padding: '4px 10px',
         borderRadius: '9999px',
         fontSize: '0.75rem',
-        fontWeight: 600,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textTransform: 'uppercase',
-        letterSpacing: '0.02em',
+        fontWeight: 800,
       }}
     >
-      {priority}
+      {label}
     </span>
   );
 }
 
 export function TicketCard({
   ticket,
-  onOpen,
   canManage,
+  /** 'admin' = triage + bulk-style controls; 'agent' = line-level advance only */
+  cardActionsLevel = 'admin',
+  selected,
+  onToggleSelect,
+  onOpen,
   onAssignNext,
   onCyclePriority,
   onAdvanceStatus,
 }) {
-  const agentName = useMemo(() => {
-    if (!ticket.assignedToAgentId) return null;
-    return AGENTS.find((a) => a.id === ticket.assignedToAgentId)?.name || null;
-  }, [ticket.assignedToAgentId]);
-
-  const descriptionSnippet = useMemo(() => {
-    const raw = ticket.description || '';
-    return raw.length > 120 ? `${raw.slice(0, 120)}...` : raw;
-  }, [ticket.description]);
+  const priorityTone = getPriorityTone(ticket.priority);
+  const slaTone = getSlaTone(ticket.slaStatus);
 
   return (
     <NoplinCard
-      onClick={onOpen}
       style={{
-        cursor: 'pointer',
-        transition: 'transform 120ms ease, box-shadow 120ms ease',
         padding: '1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.85rem',
-        border: '1px solid #eaeaea',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-        userSelect: 'none',
+        border: selected ? '1px solid #111' : '1px solid #eaeaea',
+        boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', minWidth: 0 }}>
-          <span style={{ fontWeight: 700, color: '#888', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-            {ticket.id}
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#222', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {ticket.title}
-            </h3>
-            <div style={{ marginTop: '0.35rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <PriorityBadge priority={ticket.priority} />
-              <StatusBadge status={ticket.status} />
-            </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 260, flex: 1 }}>
+          <div style={{ color: '#888', fontWeight: 800, fontSize: '0.82rem' }}>{ticket.id} · {ticket.organizationName}</div>
+          <h3 style={{ margin: '0.45rem 0 0', color: '#111' }}>{ticket.title}</h3>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.8rem' }}>
+            <StatusBadge status={ticket.status} />
+            <Pill label={ticket.priority} tone={priorityTone} />
+            <Pill label={`SLA: ${ticket.slaStatus}`} tone={slaTone} />
+            {ticket.isEscalated && <Pill label="Escalated" tone={{ bg: '#ede9fe', text: '#6d28d9', border: '#ddd6fe' }} />}
           </div>
-        </div>
-      </div>
-
-      <p style={{ color: '#555', margin: 0, lineHeight: 1.45 }}>
-        {descriptionSnippet}
-      </p>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: 'auto' }}>
-        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: '#777', flexWrap: 'wrap' }}>
-          <span>
-            Category: <strong style={{ color: '#333' }}>{ticket.category}</strong>
-          </span>
-          <span>
-            Assigned:{' '}
-            <strong style={{ color: '#333' }}>{agentName ? agentName : 'Unassigned'}</strong>
-          </span>
         </div>
 
         {canManage && (
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAssignNext?.(ticket.id);
-              }}
-              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
-            >
-              Assign Next
-            </Button>
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onCyclePriority?.(ticket.id);
-              }}
-              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
-            >
-              Cycle Priority
-            </Button>
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdvanceStatus?.(ticket.id);
-              }}
-              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
-              disabled={ticket.status === 'Resolved'}
-            >
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            {cardActionsLevel === 'admin' && (
+              <>
+                <Button onClick={(e) => { e.preventDefault(); onToggleSelect?.(ticket.id); }} style={{ padding: '8px 14px' }}>
+                  {selected ? 'Selected' : 'Select'}
+                </Button>
+                <Button onClick={(e) => { e.preventDefault(); onAssignNext?.(ticket.id); }} style={{ padding: '8px 14px' }}>
+                  Assign Next
+                </Button>
+                <Button onClick={(e) => { e.preventDefault(); onCyclePriority?.(ticket.id); }} style={{ padding: '8px 14px' }}>
+                  Cycle Priority
+                </Button>
+              </>
+            )}
+            <Button onClick={(e) => { e.preventDefault(); onAdvanceStatus?.(ticket.id); }} style={{ padding: '8px 14px' }}>
               Next Status
             </Button>
           </div>
         )}
       </div>
+
+      <p style={{ color: '#4b5563', margin: '1rem 0 0', lineHeight: 1.6 }}>
+        {ticket.description.length > 180 ? `${ticket.description.slice(0, 180)}...` : ticket.description}
+      </p>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', color: '#6b7280', fontSize: '0.88rem' }}>
+          <span>Team: <strong style={{ color: '#111' }}>{ticket.teamName}</strong></span>
+          <span>Assigned: <strong style={{ color: '#111' }}>{getAgentName(ticket.assignedToAgentId)}</strong></span>
+          <span>Waiting on: <strong style={{ color: '#111' }}>{ticket.waitingOn}</strong></span>
+          <span>Category: <strong style={{ color: '#111' }}>{ticket.category}</strong></span>
+        </div>
+        <Button onClick={(e) => { e.preventDefault(); onOpen?.(); }} style={{ padding: '8px 16px' }}>
+          Open Ticket
+        </Button>
+      </div>
     </NoplinCard>
   );
 }
-

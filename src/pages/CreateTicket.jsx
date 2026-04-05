@@ -19,7 +19,10 @@ export default function CreateTicket({ onNavigate }) {
     <div style={{ maxWidth: 980, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
         <Button
-          onClick={() => onNavigate('dashboard')}
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate('dashboard');
+          }}
           style={{
             padding: '8px 12px',
             borderRadius: '9999px',

@@ -2,6 +2,8 @@ import React from 'react';
 import { Button } from 'noplin-uis';
 
 export function Navbar({ currentPage, onNavigate }) {
+  const activeKey = currentPage === 'detail' ? 'dashboard' : currentPage;
+
   return (
     <nav
       style={{
@@ -24,24 +26,32 @@ export function Navbar({ currentPage, onNavigate }) {
 
       <div style={{ display: 'flex', gap: '0.75rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
         <Button
-          onClick={() => onNavigate('dashboard')}
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate('dashboard');
+          }}
           style={{
             padding: '10px 16px',
-            background: currentPage === 'dashboard' ? '#111' : '#fff',
-            color: currentPage === 'dashboard' ? '#fff' : '#111',
-            border: currentPage === 'dashboard' ? '1px solid #111' : '1px solid #eaeaea',
+            background: activeKey === 'dashboard' ? '#111' : '#fff',
+            color: activeKey === 'dashboard' ? '#fff' : '#111',
+            border: activeKey === 'dashboard' ? '1px solid #111' : '1px solid #eaeaea',
           }}
+          aria-current={activeKey === 'dashboard' ? 'page' : undefined}
         >
           Dashboard
         </Button>
         <Button
-          onClick={() => onNavigate('new')}
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate('new');
+          }}
           style={{
             padding: '10px 16px',
-            background: currentPage === 'new' ? '#111' : '#fff',
-            color: currentPage === 'new' ? '#fff' : '#111',
-            border: currentPage === 'new' ? '1px solid #111' : '1px solid #eaeaea',
+            background: activeKey === 'new' ? '#111' : '#fff',
+            color: activeKey === 'new' ? '#fff' : '#111',
+            border: activeKey === 'new' ? '1px solid #111' : '1px solid #eaeaea',
           }}
+          aria-current={activeKey === 'new' ? 'page' : undefined}
         >
           Create Ticket
         </Button>

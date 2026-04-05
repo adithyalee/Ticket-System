@@ -47,10 +47,8 @@ No backend, no real auth, no websockets. It’s a frontend project — good for 
 
 ## Submission bits
 
-**YouTube title (they want this exact string):**  
+**YouTube title https://youtu.be/Xagu6WDYm70
 `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
 
 - **Repo:** [github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)  
-- I’ll drop my YouTube + Medium links here once they’re live.
 
-More step-by-step stuff: [SUBMISSION.md](SUBMISSION.md). I keep a filled-out copy of [SUBMISSION_PROFILE.template.md](SUBMISSION_PROFILE.template.md) as `SUBMISSION_PROFILE.md` on my machine only (git ignores it).

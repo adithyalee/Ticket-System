@@ -5,6 +5,13 @@
 
 A React-based support ticket platform built for the Meeedly internship assignment using `noplin-uis` for the interface and native React patterns for state, workflow logic, and persistence.
 
+## Official Meeedly references (not your submission video)
+
+- **Required folder structure, naming, and interface patterns:** [Course video (playlist)](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) — compare this repo to what the video specifies before you submit.
+- **Noplin UI components:** [Noplin documentation](https://noplin.meeedly.com/)
+
+Your **own** walkthrough for the internship must be a **separate** YouTube upload; use the title format in [YOUTUBE_SCRIPT.md](YOUTUBE_SCRIPT.md).
+
 ## Assignment Fit
 
 This project is designed to satisfy the core assignment goals:

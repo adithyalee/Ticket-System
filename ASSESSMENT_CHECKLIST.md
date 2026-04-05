@@ -45,7 +45,7 @@ Follow **[SUBMISSION.md](SUBMISSION.md)** for commands and order.
 - [x] Medium article file exists and matches the project direction
 - [ ] Copy `SUBMISSION_PROFILE.template.md` → `SUBMISSION_PROFILE.md` and fill values
 - [ ] Replace placeholder personal details and public links in README / video description / Medium
-- [ ] Confirm final folder/interface naming against the required reference video
+- [ ] Confirm final folder/interface naming against the [official structure video](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) (this is **not** your submission recording; it is the assignment spec)
 - [ ] Publish the repository publicly and push `main`
 - [ ] Record and upload the YouTube walkthrough (correct title format, not a live stream)
 - [ ] Publish the Medium article with final links

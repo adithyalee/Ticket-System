@@ -11,7 +11,11 @@ Do these steps in order. Only **you** can publish GitHub, YouTube, and Medium.
 
 ## 2. Match the required video structure
 
-Open the assignment video and confirm your folders, file names, and UI patterns match. If something differs, rename or refactor before you record the video.
+Open the **official Meeedly structure video** and confirm your folders, file names, and UI patterns match:
+
+[https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10)
+
+If something differs, rename or refactor **before** you record your **own** submission walkthrough.
 
 ## 3. Clean commit history (recommended)
 

@@ -40,7 +40,8 @@ Meeedly’s [structure reference (playlist, video index 10)](https://www.youtube
 Noplin: [noplin.meeedly.com](https://noplin.meeedly.com/)
 
 My actual walkthrough video is separate (exact title is in the submission docs / assignment).  
-**Which folders to show when you walk the code:** [YOUTUBE_CODE_TOUR.md](YOUTUBE_CODE_TOUR.md).
+**What to click in the app while recording:** [YOUTUBE_DEMO_EXAMPLES.md](YOUTUBE_DEMO_EXAMPLES.md)  
+**Which code folders to open:** [YOUTUBE_CODE_TOUR.md](YOUTUBE_CODE_TOUR.md).
 
 ## Reality check
 

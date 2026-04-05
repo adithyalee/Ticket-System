@@ -1,31 +1,8 @@
-# Support ticket system (Meeedly internship)
+# Support ticket system
 
-**Adithya · Carleton University**
+Hi — I’m **Adithya** (Carleton). This repo is my Meeedly software engineering internship project: a support ticket app in React.
 
-I built this for Meeedly’s software engineering internship: a support ticket app in React that actually feels like something a real team would triage tickets on—not just create/read/update on a flat list.
-
-The UI is **Noplin** (`noplin-uis`). State is plain **React Context + `useReducer`**—no Redux, no React Router, no second UI kit. Data sticks around in **`localStorage`** so you can refresh and still see your tickets.
-
-## Before you submit
-
-The [playlist video (index 10)](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) is the **spec** for folder layout and interface patterns—compare your repo to that, not to someone else’s walkthrough.
-
-Noplin docs: [noplin.meeedly.com](https://noplin.meeedly.com/)
-
-Your **own** demo video is separate. Title format is in [YOUTUBE_SCRIPT.md](YOUTUBE_SCRIPT.md).
-
-## What it does
-
-- **Create ticket** — title + description, category/priority, then land on the ticket page.
-- **Dashboard** — search, filters (status, priority, team, queues like “Mine” / “Unassigned”), sort, pagination, KPI-style stat cards you can click to filter.
-- **Ticket detail** — public thread, internal notes (support/admin), assign team/agent, status/priority, SLA + “waiting on” workflow, activity log.
-- **Roles** — switch between customer (**User**), **Support Agent**, and **Admin** (bulk actions on the dashboard are admin-side; agents get line-level stuff like advancing status).
-
-Seeded data loads on first run so the dashboard isn’t empty.
-
-## Rules I stuck to
-
-React only for the app. **`noplin-uis`** for buttons, fields, cards, toasts. No extra libraries for state, routing, charts, or tables.
+I wanted it to feel less like a homework CRUD demo and more like something you’d actually use to triage tickets — queues, teams, internal notes vs what the customer sees, that kind of thing. All the interactive UI is **Noplin** (`noplin-uis`). I kept state in **Context + `useReducer`** and didn’t pull in Redux or another UI library. Everything persists in **`localStorage`** for now so a refresh doesn’t wipe your data.
 
 ## Run it
 
@@ -39,37 +16,41 @@ npm run build
 npm run lint
 ```
 
-## Quick tour (if you’re grading this)
+## What’s in here
 
-1. Open the dashboard, click around filters and the stat cards.
-2. Flip roles at the top.
-3. As **User**, create a ticket and open it.
-4. As **Support Agent** or **Admin**, reply, add an internal note, move team/agent, tweak status/SLA.
-5. Refresh—data should still be there (`localStorage`).
+There’s a flow to **create** tickets (title, description, category, priority), a **dashboard** with search, filters, sorting, pagination, and stat cards (some of them filter the list when you click), and a **ticket detail** page with the public thread, internal notes for support, assignment, status/priority, SLA / waiting-on stuff, and an activity log.
 
-## How the code is laid out
+You can flip between **User**, **Support Agent**, and **Admin** at the top — mostly so I could demo customer vs staff in one build. Bulk actions on cards are **admin** only; agents get simpler actions.
 
-| Area | What lives there |
-|------|------------------|
-| `src/pages/` | `Dashboard`, `CreateTicket`, `TicketDetail` |
-| `src/components/` | `TicketCard`, `TicketForm`, `MessageThread`, navbar, role switcher, status badge |
-| `src/context/TicketContext.jsx` | reducer + provider |
-| `src/hooks/useTickets.js` | what the pages call to create/update tickets |
-| `src/services/` | `mockData` (seed), `storageService` (localStorage), `ticketShape` (migrate old saves), `ticketSelectors` / `ticketUtils` (filters, stats, helpers) |
+First time you open it, it seeds a bunch of fake tickets so the dashboard isn’t empty.
 
-Tickets are stored normalized: **`ticketsById`** + **`ticketOrder`**, with team, org, assignee, SLA, messages, internal notes, activity, etc. That made updates less messy than one giant array everywhere.
+## Repo layout (rough map)
 
-## Honest limits
+`src/pages/` — the three screens.  
+`src/components/` — cards, forms, thread, navbar, role switcher, etc.  
+`src/context/TicketContext.jsx` — reducer.  
+`src/hooks/useTickets.js` — what the UI calls to change tickets.  
+`src/services/` — mock data, localStorage wrapper, helpers to migrate old saved shapes, plus filter/sort logic for the dashboard.
 
-No real backend, no auth, no websockets. It’s a frontend prototype meant to show structure and product thinking, not production security.
+Tickets sit in **`ticketsById`** plus **`ticketOrder`** so I’m not copying huge arrays around every update.
 
-## Links for submission
+## Assignment links I had to follow
 
-**YouTube title (exact):**  
+Meeedly’s [structure reference (playlist, video index 10)](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) — I checked my folders/UI against that before calling it done.  
+Noplin: [noplin.meeedly.com](https://noplin.meeedly.com/)
+
+My actual walkthrough video is separate; the title line they want is in [YOUTUBE_SCRIPT.md](YOUTUBE_SCRIPT.md).
+
+## Reality check
+
+No backend, no real auth, no websockets. It’s a frontend project — good for showing how I’d structure things before plugging in an API.
+
+## Submission bits
+
+**YouTube title (they want this exact string):**  
 `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
 
-- **GitHub:** [github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)
-- **YouTube:** add after you upload  
-- **Medium:** add after you publish  
+- **Repo:** [github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)  
+- I’ll drop my YouTube + Medium links here once they’re live.
 
-Full step list: [SUBMISSION.md](SUBMISSION.md). Copy [SUBMISSION_PROFILE.template.md](SUBMISSION_PROFILE.template.md) to `SUBMISSION_PROFILE.md` locally (that file is gitignored).
+More step-by-step stuff: [SUBMISSION.md](SUBMISSION.md). I keep a filled-out copy of [SUBMISSION_PROFILE.template.md](SUBMISSION_PROFILE.template.md) as `SUBMISSION_PROFILE.md` on my machine only (git ignores it).

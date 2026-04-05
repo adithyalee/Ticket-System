@@ -1,5 +1,7 @@
 # YouTube walkthrough — rough script
 
+**Step-by-step shot list + checkboxes:** [YOUTUBE_DEMO_FORMAT.md](YOUTUBE_DEMO_FORMAT.md)
+
 ## Title (paste exactly)
 
 `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`

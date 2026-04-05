@@ -1,35 +1,31 @@
-# I built a support ticket system for Meeedlyís internship (React + Noplin)
+# I built a support ticket system for Meeedly‚Äôs internship (React + Noplin)
 
-**Adithya ó Carleton University**
+**Adithya ‚Äî Carleton University**
 
-Meeedlyís assignment wasnít ìmake a form that saves to a list.î It was closer to: *build something you could plausibly ship as internal tooling*óhigh volume, multiple teams, and communication that doesnít blur what the customer sees vs what support writes internally.
+Meeedly‚Äôs assignment wasn‚Äôt ‚Äúmake a form that saves to a list.‚Äù It was closer to: *build something you could plausibly ship as internal tooling*‚Äîhigh volume, multiple teams, and communication that doesn‚Äôt blur what the customer sees vs what support writes internally.
 
 I used **React**, **`noplin-uis`** for the interface, and **Context + `useReducer`** for state. No Redux, no React Router package, no second component library. That constraint was annoying at times but it forced me to keep the architecture small and explicit.
 
 ## What I actually shipped
 
-Customers can open tickets with a title and real description. Support sees a **dashboard** with search, filters, queues (mine, team, unassigned, etc.), sorting, pagination, and cards for things like urgent count and SLA breachesósome of those cards filter the list when you click them.
+Customers can open tickets with a title and real description. Support sees a **dashboard** with search, filters, queues (mine, team, unassigned, etc.), sorting, pagination, and cards for things like urgent count and SLA breaches‚Äîsome of those cards filter the list when you click them.
 
-On a **ticket**, thereís a public conversation, **internal notes** (support/admin only), team + agent assignment, status/priority, SLA / ìwaiting onî flags, and an **activity** trail so youíre not guessing what changed.
+On a **ticket**, there‚Äôs a public conversation, **internal notes** (support/admin only), team + agent assignment, status/priority, SLA / ‚Äúwaiting on‚Äù flags, and an **activity** trail so you‚Äôre not guessing what changed.
 
-I added **role switching** (User / Support Agent / Admin) so one demo can show both sides. Bulk actions on the dashboard are intentionally **admin**-only; agents get lighter controls so it doesnít look like everyone is a superuser.
+I added **role switching** (User / Support Agent / Admin) so one demo can show both sides. Bulk actions on the dashboard are intentionally **admin**-only; agents get lighter controls so it doesn‚Äôt look like everyone is a superuser.
 
 ## How I structured the code
 
-Folders are boring on purpose: `pages`, `components`, `context`, `hooks`, `services`. The reducer in `TicketContext` owns ticket mutations; `useTickets` is the thin API the UI calls. Persistence is `localStorage` behind `storageService`, and older saved data gets patched forward in `ticketShape` so I donít brick someoneís browser state when fields change.
+Folders are boring on purpose: `pages`, `components`, `context`, `hooks`, `services`. The reducer in `TicketContext` owns ticket mutations; `useTickets` is the thin API the UI calls. Persistence is `localStorage` behind `storageService`, and older saved data gets patched forward in `ticketShape` so I don‚Äôt brick someone‚Äôs browser state when fields change.
 
-Tickets live in a **normalized** shape (`ticketsById` + `ticketOrder`). That made updates less error-prone than mutating nested arrays everywhere, and itís the same idea youíd use before wiring a real API.
+Tickets live in a **normalized** shape (`ticketsById` + `ticketOrder`). That made updates less error-prone than mutating nested arrays everywhere, and it‚Äôs the same idea you‚Äôd use before wiring a real API.
 
-## ìScalableî without pretending
+## ‚ÄúScalable‚Äù without pretending
 
-`localStorage` is not a database. I didnít try to sell it as one. What I *did* try to do is keep list work **memoized**, use **pagination** so the DOM isnít rendering 500 rows at once, and separate **selectors** from the React tree so the dashboard doesnít turn into a 600-line file. Seed data gives enough tickets that those choices actually matter in the demo.
+`localStorage` is not a database. I didn‚Äôt try to sell it as one. What I *did* try to do is keep list work **memoized**, use **pagination** so the DOM isn‚Äôt rendering 500 rows at once, and separate **selectors** from the React tree so the dashboard doesn‚Äôt turn into a 600-line file. Seed data gives enough tickets that those choices actually matter in the demo.
 
-## What Iíd do with more time
+## What I‚Äôd do with more time
 
 Real backend, auth, org scoping, server-side search/filter, notifications, the usual. The current app is a portfolio piece and a thought experiment in workflow UI, not production auth.
 
-## Links
-
-- **GitHub:** [github.com/adithyalee/Ticket-System](https://github.com/adithyalee/Ticket-System)  
-- **YouTube:** (add after upload) ó title must be:  
   `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`

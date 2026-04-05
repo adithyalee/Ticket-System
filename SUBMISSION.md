@@ -61,9 +61,9 @@ Open the URL shown (usually `http://localhost:5173/`). Walk through **ASSESSMENT
 ## 6. YouTube video (required format)
 
 - **Not** a live stream.
-- **Title** (exact pattern from brief):
+- **Title** for this submission (exact assignment pattern):
 
-  `[Your Project Name] Made from Noplin UIs by Meeedly - [Your Name] - [University]`
+  `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
 
 - Prefer **public** (not unlisted) if they must find it by your name and university.
 - Follow the outline in `YOUTUBE_SCRIPT.md`.

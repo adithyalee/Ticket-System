@@ -1,5 +1,8 @@
 # Meeedly Enterprise Support Ticket System
 
+**Author:** Adithya · **Carleton University**  
+**Assignment:** Software Engineering Internship — Build a Scalable Support Ticket System (Meeedly)
+
 A React-based support ticket platform built for the Meeedly internship assignment using `noplin-uis` for the interface and native React patterns for state, workflow logic, and persistence.
 
 ## Assignment Fit
@@ -220,7 +223,10 @@ src/
 
 ## Submission Links
 
-Replace these before submission (step-by-step: see **[SUBMISSION.md](SUBMISSION.md)**):
+**YouTube title (required format):**  
+`Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
+
+Replace these after you publish (step-by-step: see **[SUBMISSION.md](SUBMISSION.md)**):
 
 - GitHub Repo: `[add-public-repo-link]`
 - YouTube Walkthrough: `[add-youtube-link]`

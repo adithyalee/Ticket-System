@@ -41,7 +41,7 @@ Follow **[SUBMISSION.md](SUBMISSION.md)** for commands and order.
 - [x] README includes setup instructions
 - [x] README explains architecture decisions
 - [x] README explains scalability decisions
-- [x] YouTube script file exists and is submission-oriented
+- [x] Submission steps documented (see SUBMISSION.md)
 - [x] Medium article file exists and matches the project direction
 - [ ] Copy `SUBMISSION_PROFILE.template.md` → `SUBMISSION_PROFILE.md` and fill values
 - [ ] Replace placeholder personal details and public links in README / video description / Medium

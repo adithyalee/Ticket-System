@@ -72,33 +72,24 @@ export default function Dashboard({ onNavigate, initialState, onStateChange }) {
     updateTicket,
   } = useTickets();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [priorityFilter, setPriorityFilter] = useState('All');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [teamFilter, setTeamFilter] = useState('All');
-  const [queueView, setQueueView] = useState('All');
-  const [slaStatusFilter, setSlaStatusFilter] = useState('All');
-  const [sortBy, setSortBy] = useState('Newest');
-  const [pageSize, setPageSize] = useState(10);
-  const [page, setPage] = useState(1);
+  /** Hydrate once from parent when this screen mounts (e.g. returning from ticket detail). Avoid useEffect([initialState]) — parent gets a new object every sync and would re-apply state every tick ("dancing"). */
+  const [searchTerm, setSearchTerm] = useState(() => initialState?.searchTerm ?? '');
+  const [statusFilter, setStatusFilter] = useState(() => initialState?.statusFilter ?? 'All');
+  const [priorityFilter, setPriorityFilter] = useState(() => initialState?.priorityFilter ?? 'All');
+  const [categoryFilter, setCategoryFilter] = useState(() => initialState?.categoryFilter ?? 'All');
+  const [teamFilter, setTeamFilter] = useState(() => initialState?.teamFilter ?? 'All');
+  const [queueView, setQueueView] = useState(() => initialState?.queueView ?? 'All');
+  const [slaStatusFilter, setSlaStatusFilter] = useState(() => initialState?.slaStatusFilter ?? 'All');
+  const [sortBy, setSortBy] = useState(() => initialState?.sortBy ?? 'Newest');
+  const [pageSize, setPageSize] = useState(() => initialState?.pageSize ?? 10);
+  const [page, setPage] = useState(() => initialState?.page ?? 1);
   const [selectedIds, setSelectedIds] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
-  const listTopRef = useRef(null);
-
-  useEffect(() => {
-    if (!initialState) return;
-    setSearchTerm(initialState.searchTerm ?? '');
-    setStatusFilter(initialState.statusFilter ?? 'All');
-    setPriorityFilter(initialState.priorityFilter ?? 'All');
-    setCategoryFilter(initialState.categoryFilter ?? 'All');
-    setTeamFilter(initialState.teamFilter ?? 'All');
-    setQueueView(initialState.queueView ?? 'All');
-    setSlaStatusFilter(initialState.slaStatusFilter ?? 'All');
-    setSortBy(initialState.sortBy ?? 'Newest');
-    setPageSize(initialState.pageSize ?? 10);
-    setPage(initialState.page ?? 1);
-  }, [initialState]);
+  /** Scroll target only when user clicks Prev/Next — not on every re-render (role switch, Strict Mode, etc.). */
+  const ticketListAnchorRef = useRef(null);
+  const prevRoleRef = useRef(currentUser.role);
+  /** Avoid setPage(1) on mount / Strict Mode double-invoke; only when filter key actually changes. */
+  const filterKeyForPageResetRef = useRef(null);
 
   useEffect(() => {
     onStateChange?.({
@@ -115,14 +106,39 @@ export default function Dashboard({ onNavigate, initialState, onStateChange }) {
     });
   }, [onStateChange, searchTerm, statusFilter, priorityFilter, categoryFilter, teamFilter, queueView, slaStatusFilter, sortBy, pageSize, page]);
 
+  /** Reset to page 1 when filters change — not when re-entering dashboard with saved filters (same key as before). */
   useEffect(() => {
+    const key = [searchTerm, statusFilter, priorityFilter, categoryFilter, teamFilter, queueView, slaStatusFilter, sortBy, pageSize].join('\0');
+    if (filterKeyForPageResetRef.current === null) {
+      filterKeyForPageResetRef.current = key;
+      return;
+    }
+    if (filterKeyForPageResetRef.current === key) return;
+    filterKeyForPageResetRef.current = key;
     setPage(1);
   }, [searchTerm, statusFilter, priorityFilter, categoryFilter, teamFilter, queueView, slaStatusFilter, sortBy, pageSize]);
 
+  /** Customer role has no agent/team context — "Mine" / "My Team" would show an empty list and huge layout jumps. */
   useEffect(() => {
-    if (!listTopRef.current) return;
-    listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [page, pageSize]);
+    const prev = prevRoleRef.current;
+    prevRoleRef.current = currentUser.role;
+    if (prev !== currentUser.role && currentUser.role === 'User') {
+      if (queueView === 'Mine' || queueView === 'My Team') {
+        setQueueView('All');
+      }
+    }
+  }, [currentUser.role, queueView]);
+
+  /** Avoid bulk bar / selection flash when demoting from Admin. */
+  useEffect(() => {
+    if (!isAdmin) setSelectedIds([]);
+  }, [isAdmin]);
+
+  const scrollTicketListIntoView = () => {
+    requestAnimationFrame(() => {
+      ticketListAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
 
   const stats = useMemo(() => buildTicketStats(tickets), [tickets]);
 
@@ -143,6 +159,12 @@ export default function Dashboard({ onNavigate, initialState, onStateChange }) {
   );
 
   const sorted = useMemo(() => sortTicketsForDashboard(filtered, sortBy), [filtered, sortBy]);
+
+  /** Keep page in range when the filtered list shrinks (role/queue/filters) without triggering window scroll elsewhere. */
+  useEffect(() => {
+    const tp = Math.max(1, Math.ceil(sorted.length / pageSize));
+    setPage((p) => Math.min(Math.max(1, p), tp));
+  }, [sorted.length, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const currentPage = Math.min(Math.max(page, 1), totalPages);
@@ -275,10 +297,12 @@ export default function Dashboard({ onNavigate, initialState, onStateChange }) {
       </div>
 
       <NoplinCard style={{ padding: '1.25rem', border: '1px solid #e5e7eb', marginBottom: '1.25rem' }}>
-        <div ref={listTopRef} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-            {['All', 'Mine', 'My Team', 'Unassigned', 'Escalated', 'Awaiting Customer'].map((queue) => (
+            {(canManage
+              ? ['All', 'Mine', 'My Team', 'Unassigned', 'Escalated', 'Awaiting Customer']
+              : ['All', 'Unassigned', 'Escalated', 'Awaiting Customer']
+            ).map((queue) => (
               <Button key={queue} onClick={(e) => { e.preventDefault(); setQueueView(queue); }} style={filterPillStyle(queueView === queue)}>
                 {queue}
               </Button>
@@ -366,6 +390,7 @@ export default function Dashboard({ onNavigate, initialState, onStateChange }) {
         </NoplinCard>
       )}
 
+      <div ref={ticketListAnchorRef} style={{ scrollMarginTop: '100px' }} aria-hidden />
       {pageTickets.length === 0 ? (
         <NoplinCard style={{ padding: '3rem', textAlign: 'center', border: '1px solid #e5e7eb' }}>
           <h3 style={{ marginTop: 0, color: '#111' }}>No tickets found</h3>
@@ -421,7 +446,10 @@ export default function Dashboard({ onNavigate, initialState, onStateChange }) {
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
-                      if (!isFirst) setPage((value) => Math.max(1, value - 1));
+                      if (!isFirst) {
+                        setPage((value) => Math.max(1, value - 1));
+                        scrollTicketListIntoView();
+                      }
                     }}
                     disabled={isFirst}
                     aria-disabled={isFirst}
@@ -434,7 +462,10 @@ export default function Dashboard({ onNavigate, initialState, onStateChange }) {
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
-                      if (!isLast) setPage((value) => Math.min(totalPages, value + 1));
+                      if (!isLast) {
+                        setPage((value) => Math.min(totalPages, value + 1));
+                        scrollTicketListIntoView();
+                      }
                     }}
                     disabled={isLast}
                     aria-disabled={isLast}

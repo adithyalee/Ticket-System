@@ -35,7 +35,7 @@ git commit -m "feat: ticket shape migration and dashboard selectors"
 git add src/pages src/components src/context src/hooks
 git commit -m "feat: enterprise dashboard, ticket detail, and workflows"
 
-git add README.md ASSESSMENT_CHECKLIST.md SUBMISSION.md YOUTUBE_SCRIPT.md MEDIUM_ARTICLE.md
+git add README.md ASSESSMENT_CHECKLIST.md SUBMISSION.md MEDIUM_ARTICLE.md
 git commit -m "docs: submission materials and README"
 ```
 
@@ -69,9 +69,8 @@ Open the URL shown (usually `http://localhost:5173/`). Walk through **ASSESSMENT
 
   `Scalable Support Ticket System Made from Noplin UIs by Meeedly - Adithya - Carleton University`
 
-- Prefer **public** (not unlisted) if they must find it by your name and university.
-- Follow the outline in `YOUTUBE_SCRIPT.md`.
-- Paste repo + Medium links in the description.
+- **Visibility:** The brief often says reviewers should be able to find your work. **Public** is safest. **Unlisted** is fine if you send them the link in your application email/portal (anyone with the link can watch; it won’t show on your channel for browse). **Private** usually **does not work** for reviewers—they can’t open it unless you add each person’s Google account, so avoid private for submissions.
+- Paste **repo + Medium** links in the description.
 
 ## 7. Medium article
 
@@ -86,4 +85,4 @@ Open the URL shown (usually `http://localhost:5173/`). Walk through **ASSESSMENT
 
 ## After URLs exist
 
-Search the repo for `add-youtube-link` / `add-medium-link` (or similar placeholders) and drop in the real links in **README**, **YOUTUBE_SCRIPT.md** description, and **MEDIUM_ARTICLE.md**.
+Search the repo for placeholder links and put your real **YouTube**, **GitHub**, and **Medium** URLs in **README**, video description, and **MEDIUM_ARTICLE.md** when you publish.

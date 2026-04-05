@@ -39,9 +39,7 @@ Tickets sit in **`ticketsById`** plus **`ticketOrder`** so I’m not copying hug
 Meeedly’s [structure reference (playlist, video index 10)](https://www.youtube.com/watch?v=-sjc31rI5lQ&list=PLN_pZg3k2CjjoJBAY9ftCEgpyJuDpF-9q&index=10) — I checked my folders/UI against that before calling it done.  
 Noplin: [noplin.meeedly.com](https://noplin.meeedly.com/)
 
-My actual walkthrough video is separate (exact title is in the submission docs / assignment).  
-**What to click in the app while recording:** [YOUTUBE_DEMO_EXAMPLES.md](YOUTUBE_DEMO_EXAMPLES.md)  
-**Which code folders to open:** [YOUTUBE_CODE_TOUR.md](YOUTUBE_CODE_TOUR.md).
+If you’re submitting this for the same internship: record your own walkthrough (not the official structure playlist). Use the **exact YouTube title** Meeedly asks for — see [SUBMISSION.md](SUBMISSION.md).
 
 ## Reality check
 
